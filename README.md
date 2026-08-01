@@ -1,2 +1,2 @@
 # RAGDemo
-GraphRAG, RAG demo
+GraphRAG, RAG demo, Faiss
