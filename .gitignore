@@ -1,0 +1,13 @@
+# 环境变量（含密钥）
+.env
+
+# 缓存（Faiss 索引、图抽取结果）
+**/.cache/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/

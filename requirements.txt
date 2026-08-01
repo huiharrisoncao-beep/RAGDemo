@@ -1,0 +1,6 @@
+# 依赖：GraphRAG / 传统 RAG 对比 Demo
+faiss-cpu>=1.7.4
+openai>=1.30.0
+networkx>=3.1
+sentence-transformers>=2.2.2
+python-dotenv>=1.0.0
