@@ -61,12 +61,14 @@
   .term{background:#0b1220;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
      font-family:"SF Mono",Consolas,Menlo,monospace;font-size:clamp(12px,1.25vw,16px);
      line-height:1.65;color:#cbd5e1;white-space:pre-wrap;overflow:auto}
+  .term.sm{font-size:clamp(10px,1.05vw,14px);line-height:1.55}
   .term .c-good{color:var(--good)} .term .c-bad{color:var(--bad)}
   .term .c-dim{color:#64748b} .term .c-key{color:var(--brand)}
   .center{align-items:center;justify-content:center;text-align:center}
   .badge-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;justify-content:center}
   .badge{background:var(--panel);border:1px solid var(--line);border-radius:12px;
      padding:10px 18px;font-size:clamp(13px,1.4vw,18px)}
+  .badge.good{color:var(--good)}
   .kicker{letter-spacing:.35em;color:var(--brand);font-weight:700;font-size:clamp(12px,1.3vw,16px);
      text-transform:uppercase;margin-bottom:20px}
   svg{width:100%;height:auto;display:block}
@@ -122,7 +124,7 @@
         <h3>实战篇</h3>
         <ul>
           <li>GraphRAG 的优势与能解决的问题</li>
-          <li>贯穿式对比案例（Q1 / Q2）</li>
+          <li>语料库设计 + 贯穿式对比（Q1 / Q2）</li>
           <li>GraphRAG 如何做到：<b>逐跳拆解</b></li>
           <li>适用边界与取舍</li>
         </ul>
@@ -150,7 +152,6 @@
           <rect x="40" y="176" width="220" height="46" rx="10" fill="#0b1220" stroke="#334155" stroke-dasharray="5 4"/>
           <text x="150" y="204" text-anchor="middle" fill="#94a3b8" font-size="14">外部语料库</text>
           <line x1="150" y1="176" x2="150" y2="148" stroke="#64748b" stroke-width="2" marker-end="url(#a)"/>
-          <line x1="150" y1="146" x2="150" y2="238" stroke="#818cf8" stroke-width="0"/>
           <rect x="60" y="240" width="180" height="52" rx="10" fill="#273449" stroke="#818cf8"/>
           <text x="150" y="272" text-anchor="middle" fill="#818cf8" font-size="16">大模型 → 答案</text>
           <line x1="150" y1="146" x2="150" y2="238" stroke="#818cf8" stroke-width="2" marker-end="url(#a)"/>
@@ -191,10 +192,10 @@
       <div class="card tint">
         <h3>五个步骤</h3>
         <ul>
-          <li><b>① 切块</b> 语料切成文本块</li>
-          <li><b>② 向量化</b> 每块编码成向量</li>
+          <li><b>① 切块</b> 语料切成文本块 chunk</li>
+          <li><b>② 向量化</b> 每块编码成一个向量</li>
           <li><b>③ 建库</b> 存入向量库（Faiss）</li>
-          <li><b>④ 检索</b> 找最相似 top-k 块</li>
+          <li><b>④ 检索</b> 问题也向量化，找最相似 top-k</li>
           <li><b>⑤ 生成</b> 拼上下文交给大模型</li>
         </ul>
         <p class="warn" style="margin-top:12px">核心特征：<b>扁平的相似度匹配</b> —— 块与块之间<b>没有关联结构</b>。</p>
@@ -202,80 +203,41 @@
     </div>
   </section>
 
-  <!-- 5 结构性局限：多跳问题 -->
+  <!-- 5 结构性局限 -->
   <section class="slide">
     <h2><span class="num">3</span>传统 RAG 的结构性局限</h2>
     <div class="grid cols-2">
       <div class="card">
         <h3>一个多跳问题</h3>
-        <p class="warn">「云枢智能的 CEO 毕业于哪所大学？那所大学在哪个城市？」</p>
-        <p class="muted">回答它要串联 3 个事实，而它们<b>分散在不同文档</b>：</p>
-        <svg viewBox="0 0 460 250" style="margin-top:6px">
+        <p class="warn">「我最喜欢的那部电影，它的导演是哪里人？」</p>
+        <p class="muted">要答对，得先找「导演是谁」，再找「导演出生在哪」——两个事实<b>往往写在不同资料里</b>：</p>
+        <svg viewBox="0 0 460 210" style="margin-top:6px">
           <defs><marker id="c" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#38bdf8"/></marker></defs>
-          <rect x="10" y="20" width="130" height="42" rx="9" fill="#273449" stroke="#38bdf8"/><text x="75" y="46" text-anchor="middle" fill="#e2e8f0" font-size="15">云枢智能</text>
-          <text x="200" y="34" fill="#94a3b8" font-size="12">的CEO是</text>
+          <rect x="10" y="20" width="130" height="42" rx="9" fill="#273449" stroke="#38bdf8"/><text x="75" y="46" text-anchor="middle" fill="#e2e8f0" font-size="15">这部电影</text>
+          <text x="200" y="34" fill="#94a3b8" font-size="12">的导演是</text>
           <line x1="140" y1="41" x2="255" y2="41" stroke="#38bdf8" stroke-width="2" marker-end="url(#c)"/>
-          <rect x="258" y="20" width="90" height="42" rx="9" fill="#273449" stroke="#38bdf8"/><text x="303" y="46" text-anchor="middle" fill="#e2e8f0" font-size="15">李明</text>
-          <text x="360" y="90" fill="#64748b" font-size="11">leadership.md</text>
-          <line x1="303" y1="62" x2="303" y2="96" stroke="#38bdf8" stroke-width="2" marker-end="url(#c)"/>
-          <text x="200" y="112" fill="#94a3b8" font-size="12">毕业于</text>
-          <rect x="150" y="118" width="150" height="42" rx="9" fill="#273449" stroke="#38bdf8"/><text x="225" y="144" text-anchor="middle" fill="#e2e8f0" font-size="15">未名理工大学</text>
-          <text x="308" y="145" fill="#64748b" font-size="11">people.md</text>
-          <line x1="225" y1="160" x2="225" y2="194" stroke="#38bdf8" stroke-width="2" marker-end="url(#c)"/>
-          <text x="120" y="210" fill="#94a3b8" font-size="12">位于</text>
-          <rect x="150" y="196" width="90" height="42" rx="9" fill="#1e293b" stroke="#34d399"/><text x="195" y="222" text-anchor="middle" fill="#34d399" font-size="15">江城</text>
-          <text x="250" y="222" fill="#64748b" font-size="11">universities.md</text>
+          <rect x="258" y="20" width="90" height="42" rx="9" fill="#273449" stroke="#38bdf8"/><text x="303" y="46" text-anchor="middle" fill="#e2e8f0" font-size="15">导演</text>
+          <text x="360" y="46" fill="#64748b" font-size="11">第1跳(相似)</text>
+          <line x1="303" y1="62" x2="303" y2="100" stroke="#38bdf8" stroke-width="2" marker-end="url(#c)"/>
+          <text x="200" y="118" fill="#94a3b8" font-size="12">出生于</text>
+          <rect x="150" y="124" width="150" height="42" rx="9" fill="#1e293b" stroke="#f87171"/><text x="225" y="150" text-anchor="middle" fill="#f87171" font-size="15">某个城市</text>
+          <text x="308" y="150" fill="#64748b" font-size="11">第2跳(不相似→漏)</text>
         </svg>
       </div>
       <div class="card tint">
-        <h3>为什么传统 RAG 会断链</h3>
-        <p>问题向量只召回和<b>「问题整体」</b>最相似的块：</p>
+        <h3>四个结构性问题</h3>
         <ul>
-          <li><span class="good">✓</span> 「云枢智能 CEO」块 → 相似 → 召回</li>
-          <li><span class="bad">✗</span> 「李明毕业于未名理工」<b>不含"云枢智能"</b> → 不相似 → <b class="bad">漏</b></li>
-          <li><span class="bad">✗</span> 「未名理工位于江城」<b>两个关键词都没有</b> → <b class="bad">更漏</b></li>
+          <li><b class="bad">多跳会断链</b>：第 2、3 跳往往不含问题关键词 → 漏召回</li>
+          <li><b>块间无关联结构</b>：无法「顺着某个关系往下找」</li>
+          <li><b>无法聚合/遍历</b>：「一类邻居 + 过滤」没有对应机制</li>
+          <li><b>可解释性弱、易幻觉</b>：上下文残缺时模型倾向「补全」</li>
         </ul>
-        <p class="bad" style="margin-top:14px">⚠️ 这不是调参问题。后续跳与问题<b>天然不相似</b>，调大 top-k 只会引入噪声 —— 这是扁平相似度检索的<b>结构性缺陷</b>。</p>
+        <p class="bad" style="margin-top:14px">⚠️ 这不是调参问题。调大 top-k 只会引入更多噪声，后续跳依然不相似 —— 这是<b>扁平相似度检索的结构性缺陷</b>。</p>
       </div>
     </div>
   </section>
 
-  <!-- 6 真实失败输出 -->
-  <section class="slide">
-    <h2><span class="num">3</span>看 Demo 的真实输出：传统 RAG 失败</h2>
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>检索结果（top-3）</h3>
-        <div class="term">[检索] top-3 召回片段：
-  1. (<span class="c-key">score=0.513</span>, 来源=leadership.md)
-     李明现任云枢智能的 CEO…       <span class="c-good">← 只有第1跳</span>
-  2. (score=0.469, 来源=companies.md)
-     云枢智能是星环科技的全资子公司…
-  3. (score=0.422, 来源=universities.md)
-     北山大学地处云港…             <span class="c-bad">← 无关块（噪声）</span>
-</div>
-        <p class="muted" style="margin-top:10px">第2、3 跳所需的 people.md、正确的 universities 片段<b>没被召回</b>。</p>
-      </div>
-      <div class="card tint">
-        <h3>生成的答案</h3>
-        <div class="term">[生成] 答案：
-<span class="c-bad">根据现有资料无法确定。</span>
-上下文仅提到李明是云枢智能的CEO，
-但未说明李明的毕业院校。</div>
-        <div style="margin-top:18px">
-          <svg viewBox="0 0 460 150">
-            <rect x="10" y="20" width="440" height="110" rx="12" fill="#0b1220" stroke="#f87171" stroke-dasharray="6 4"/>
-            <text x="30" y="52" fill="#34d399" font-size="14">✓ 李明是云枢智能CEO（相似）</text>
-            <text x="30" y="82" fill="#f87171" font-size="14">✗ 李明毕业于未名理工（漏）</text>
-            <text x="30" y="112" fill="#f87171" font-size="14">✗ 未名理工位于江城（漏）</text>
-            <text x="300" y="82" fill="#fbbf24" font-size="13">链条断裂 → 幻觉/答不出</text>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 7 GraphRAG 原理 -->
+  <!-- 6 GraphRAG 原理 -->
   <section class="slide">
     <h2><span class="num">4</span>GraphRAG 的实现原理</h2>
     <p class="lead">把「扁平的块集合」换成 <b class="hl">实体-关系图</b>：检索 = 在图上<b>按关系走路径</b>。</p>
@@ -304,16 +266,16 @@
         <h3>四个步骤</h3>
         <ul>
           <li><b>① 抽取</b> LLM 抽三元组（主体,关系,客体）</li>
-          <li><b>② 建图</b> 三元组连成有向图</li>
-          <li><b>③ 遍历</b> 从问题实体沿边<b>多跳走</b></li>
-          <li><b>④ 生成</b> 把路径交给大模型</li>
+          <li><b>② 建图</b> 三元组连成有向图（记录来源）</li>
+          <li><b>③ 遍历</b> 从问题实体沿边<b>多跳走</b>，收集整条链</li>
+          <li><b>④ 生成</b> 把路径作为上下文交给大模型</li>
         </ul>
         <p class="good" style="margin-top:12px">核心区别：后续跳即使<b>字面不相似</b>，也能通过<b>边</b>被精确找到。</p>
       </div>
     </div>
   </section>
 
-  <!-- 8 优势 -->
+  <!-- 7 优势 -->
   <section class="slide">
     <h2><span class="num">5</span>GraphRAG 的优势与能解决的问题</h2>
     <table>
@@ -327,10 +289,50 @@
     <p class="good" style="margin-top:18px">其中 <b>多跳推理</b> 与 <b>聚合查询</b> 是<b>质变</b>能力 —— 不是「效果好一点」，而是「一个能做、一个根本做不到」。</p>
   </section>
 
+  <!-- 8 语料库设计：全部 19 个 chunk -->
+  <section class="slide">
+    <h2><span class="num">6</span>语料库设计：5 篇文档切成 19 个 chunk</h2>
+    <p class="muted" style="margin-bottom:6px">按<b>空行</b>切段落、跳过纯标题块，<b>一个段落 = 一个 chunk</b>（见 <code>common/corpus.py</code>）。每篇的 <b>#1/#6/#8/#12/#16</b> 都是一句<b class="warn">隔离声明</b>，正文<b>刻意不出现下一跳关键词</b>。</p>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="term sm"><span class="c-key">companies.md（5 块）</span>
+<span class="c-dim">#1  本篇仅描述星环科技集团的股权与子公司结构，不涉及任何高管人事信息。</span>
+#2  星环科技是一家综合性科技集团，横跨 AI、数据平台与网络通信，以控股方式管理旗下多家子公司。
+#3  云枢智能是星环科技的全资子公司，专注企业级 AI 推理平台。
+#4  恒星数据是星环科技旗下的子公司，主营大规模数据仓库与实时分析引擎。
+#5  光年网络同样隶属于星环科技，布局网络通信与边缘计算。
+
+<span class="c-key">investors.md（2 块）</span>
+<span class="c-dim">#6  本篇仅记录投资方与被投公司之间的投资关系。</span>
+#7  磐石资本是专注科技领域的投资机构，曾投资星环科技，成为其重要股东之一。</div>
+      </div>
+      <div class="card">
+        <div class="term sm"><span class="c-key">leadership.md（4 块）</span>
+<span class="c-dim">#8  本篇仅记录各公司的 CEO 任职关系，不涉及教育背景或毕业院校。</span>
+#9  李明现任云枢智能的 CEO，全面负责产品与经营。
+#10 王芳担任恒星数据的 CEO，主导数据平台战略。
+#11 陈伟是光年网络的 CEO，负责网络通信业务的整体运营。
+
+<span class="c-key">people.md（4 块）</span>
+<span class="c-dim">#12 本篇仅记录人物与其毕业院校，不涉及院校城市，也不涉及任职公司。</span>
+#13 李明毕业于未名理工大学，主修计算机科学。   <span class="c-bad">← 不含「云枢智能」</span>
+#14 王芳毕业于明德大学，拥有信息工程学位。
+#15 陈伟毕业于北山大学，专业方向为通信工程。
+
+<span class="c-key">universities.md（4 块）</span>
+<span class="c-dim">#16 本篇仅记录高校与其所在城市，不涉及任何人物或公司。</span>
+#17 未名理工大学坐落于江城，以工科见长。       <span class="c-bad">← 无「云枢」「李明」</span>
+#18 明德大学位于松岛，以信息学科闻名。
+#19 北山大学地处云港，在通信与电子领域实力雄厚。</div>
+      </div>
+    </div>
+    <p class="bad" style="margin-top:10px">串联 <b>#9→#13→#17</b> 时：#13 不含「云枢智能」、#17 两个关键词都没有 → 传统 RAG 只能捞到 #9，后两块<b>必然漏召回</b> —— 结构性局限的<b>可复现体现</b>。</p>
+  </section>
+
   <!-- 9 对比案例 Q1/Q2 -->
   <section class="slide">
     <h2><span class="num">6</span>贯穿式对比案例（同语料 · 同问题）</h2>
-    <p class="muted">语料被<b>刻意设计</b>：相邻两跳事实放在不同文档、每篇不含下一跳关键词 → 传统 RAG <b>可复现地</b>失败。</p>
+    <p class="muted">用<b>同一份语料、同一批问题</b>跑两个程序，可用 <code>compare.py</code> 并排对比。</p>
     <div class="grid cols-2" style="margin-top:6px">
       <div class="card">
         <h3>Q1 · 线性多跳</h3>
@@ -355,17 +357,85 @@
     </div>
   </section>
 
-  <!-- 10 如何做到 step1 抽取 -->
+  <!-- 10 传统 RAG 详细步骤（Q1 实跑） -->
   <section class="slide">
-    <h2><span class="num">7</span>如何做到 · 第一步：抽取</h2>
+    <h2><span class="num">6</span>传统 RAG 详细步骤（以 Q1 实跑）</h2>
+    <div class="grid cols-12-1">
+      <div class="card">
+        <div class="term">Q1：云枢智能的 CEO 毕业于哪所大学？那所大学在哪个城市？
+
+<span class="c-dim">① 问题向量化</span>  问题编码成一个 query 向量
+<span class="c-dim">② 相似度检索</span>  在 19 个 chunk 中取 top-3：
+  1. (<span class="c-key">score=0.513</span>, leadership.md) 李明现任云枢智能的 CEO…   <span class="c-good">← 命中第1跳</span>
+  2. (score=0.469, companies.md) 云枢智能是星环科技的全资子公司…
+  3. (score=0.422, universities.md) 北山大学地处云港…              <span class="c-bad">← 无关噪声</span>
+<span class="c-dim">③ 拼接上下文</span>  把 top-3 拼成 prompt
+<span class="c-dim">④ 交给大模型生成</span>
+
+[生成] 答案：
+<span class="c-bad">根据现有资料无法确定。</span>上下文仅提到李明是云枢智能的
+CEO，但未说明李明的毕业院校。</div>
+      </div>
+      <div class="card tint">
+        <h3>这一趟命中了什么</h3>
+        <ul>
+          <li><span class="good">✓</span> #9 含「云枢智能」→ 相似 → 召回</li>
+          <li><span class="bad">✗</span> #13「李明毕业于未名理工」<b>不含「云枢智能」</b> → 漏</li>
+          <li><span class="bad">✗</span> #17「未名理工位于江城」<b>两个关键词都没有</b> → 更漏</li>
+        </ul>
+        <p class="warn" style="margin-top:12px">top-3 里甚至混入了完全无关的 #19（北山大学），这就是<b>噪声</b>。</p>
+        <p class="muted" style="margin-top:8px">拿到的上下文只覆盖了<b>第 1 跳</b>，第 2、3 跳的事实压根没进 prompt。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 失败原因分析 -->
+  <section class="slide">
+    <h2><span class="num">6</span>为什么会失败：断链分析</h2>
+    <div class="grid cols-2">
+      <div class="card center">
+        <div class="term" style="width:100%">问题：云枢智能的 CEO 毕业于哪？在哪个城市？</div>
+        <svg viewBox="0 0 460 190" style="margin-top:10px">
+          <rect x="10" y="12" width="440" height="166" rx="12" fill="#0b1220" stroke="#f87171" stroke-dasharray="6 4"/>
+          <text x="30" y="46" fill="#34d399" font-size="15">第1跳  ✓ 云枢智能 → 李明（#9，相似，召回）</text>
+          <text x="30" y="90" fill="#f87171" font-size="15">第2跳  ✗ 李明 → 未名理工（#13，不相似，漏）</text>
+          <text x="30" y="134" fill="#f87171" font-size="15">第3跳  ✗ 未名理工 → 江城（#17，不相似，漏）</text>
+          <text x="120" y="166" fill="#fbbf24" font-size="14">链条在第 1 跳后断裂 → 幻觉 / 答不出</text>
+        </svg>
+      </div>
+      <div class="card tint">
+        <h3>三个根因</h3>
+        <ul>
+          <li><b>只有第 1 跳与问题相似</b>：问题含「云枢智能 / CEO」，仅 #9 命中</li>
+          <li><b>第 2、3 跳天然不相似</b>：#13/#17 不含问题关键词，向量距离远 → 漏召回</li>
+          <li><b>调大 top-k 无解</b>：只会引入更多噪声（如 #19），后续跳依然不相似</li>
+        </ul>
+        <p class="bad" style="margin-top:12px">⚠️ 上下文残缺 → 大模型要么答不出，要么「补全」缺失信息 → <b>幻觉</b>。</p>
+        <p class="good" style="margin-top:8px">这是<b>扁平相似度检索的结构性缺陷</b> —— 不是调参能解决的。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 如何做到 step1 抽取 -->
+  <section class="slide">
+    <h2><span class="num">7</span>GraphRAG 详细步骤 · 第一步：抽取</h2>
     <p class="lead">LLM 把每篇文档变成 <b>三元组</b>（主体 — 关系 → 客体），并记录来源文档。</p>
     <div class="grid cols-2" style="margin-top:8px">
       <div class="card">
-        <div class="term">云枢智能 <span class="c-key">--HAS_CEO--></span> 李明            [leadership.md]
+        <div class="term sm">星环科技 <span class="c-key">--HAS_SUBSIDIARY--></span> 云枢智能   [companies.md]
+星环科技 <span class="c-key">--HAS_SUBSIDIARY--></span> 恒星数据   [companies.md]
+星环科技 <span class="c-key">--HAS_SUBSIDIARY--></span> 光年网络   [companies.md]
+磐石资本 <span class="c-key">--INVESTED_IN--></span> 星环科技       [investors.md]
+云枢智能 <span class="c-key">--HAS_CEO--></span> 李明            [leadership.md]
+恒星数据 <span class="c-key">--HAS_CEO--></span> 王芳            [leadership.md]
+光年网络 <span class="c-key">--HAS_CEO--></span> 陈伟            [leadership.md]
 李明 <span class="c-key">--GRADUATED_FROM--></span> 未名理工大学  [people.md]
-未名理工大学 <span class="c-key">--LOCATED_IN--></span> 江城      [universities.md]
-星环科技 <span class="c-key">--HAS_SUBSIDIARY--></span> 云枢智能  [companies.md]
-<span class="c-dim">... 共 13 条</span></div>
+王芳 <span class="c-key">--GRADUATED_FROM--></span> 明德大学      [people.md]
+陈伟 <span class="c-key">--GRADUATED_FROM--></span> 北山大学      [people.md]
+未名理工大学 <span class="c-key">--LOCATED_IN--></span> 江城   [universities.md]
+明德大学 <span class="c-key">--LOCATED_IN--></span> 松岛       [universities.md]
+北山大学 <span class="c-key">--LOCATED_IN--></span> 云港       [universities.md]
+<span class="c-dim">—— 共 13 条</span></div>
       </div>
       <div class="card tint">
         <h3>固定关系集（教学版）</h3>
@@ -376,21 +446,19 @@
           <li><code>LOCATED_IN</code> 高校 → 城市</li>
           <li><code>INVESTED_IN</code> 投资方 → 公司</li>
         </ul>
-        <p class="muted" style="margin-top:12px">固定关系让抽取稳定、图干净；结果缓存为 <code>graph.json</code>，可人工校对。</p>
+        <p class="muted" style="margin-top:12px">三步中间结果全部打印，便于现场观察它是<b>怎么走通那条链</b>的。</p>
       </div>
     </div>
   </section>
 
-  <!-- 11 step2 建图 -->
+  <!-- 13 step2 建图 -->
   <section class="slide">
-    <h2><span class="num">7</span>如何做到 · 第二步：建图</h2>
+    <h2><span class="num">7</span>GraphRAG 详细步骤 · 第二步：建图</h2>
     <p class="lead">三元组连成<b>有向图</b>：节点=实体，边=关系（带来源）。<span class="muted">14 个节点，13 条边。</span></p>
     <div class="card" style="flex:1;margin-top:8px">
       <svg viewBox="0 0 900 340">
         <defs><marker id="g" markerWidth="11" markerHeight="11" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 Z" fill="#818cf8"/></marker></defs>
-        <!-- 星环科技 -->
         <rect x="20" y="150" width="130" height="46" rx="10" fill="#1e293b" stroke="#f472b6"/><text x="85" y="178" text-anchor="middle" fill="#f472b6" font-size="15">星环科技</text>
-        <!-- 三个子公司 -->
         <rect x="240" y="40" width="130" height="44" rx="10" fill="#273449" stroke="#38bdf8"/><text x="305" y="67" text-anchor="middle" fill="#e2e8f0" font-size="14">云枢智能</text>
         <rect x="240" y="150" width="130" height="44" rx="10" fill="#273449" stroke="#334155"/><text x="305" y="177" text-anchor="middle" fill="#94a3b8" font-size="14">恒星数据</text>
         <rect x="240" y="260" width="130" height="44" rx="10" fill="#273449" stroke="#334155"/><text x="305" y="287" text-anchor="middle" fill="#94a3b8" font-size="14">光年网络</text>
@@ -398,7 +466,6 @@
         <line x1="150" y1="172" x2="238" y2="172" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <line x1="150" y1="182" x2="238" y2="278" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <text x="165" y="100" fill="#64748b" font-size="11">HAS_SUBSIDIARY</text>
-        <!-- CEO -->
         <rect x="440" y="46" width="90" height="40" rx="10" fill="#273449" stroke="#38bdf8"/><text x="485" y="71" text-anchor="middle" fill="#e2e8f0" font-size="14">李明</text>
         <rect x="440" y="152" width="90" height="40" rx="10" fill="#273449" stroke="#334155"/><text x="485" y="177" text-anchor="middle" fill="#94a3b8" font-size="14">王芳</text>
         <rect x="440" y="262" width="90" height="40" rx="10" fill="#273449" stroke="#334155"/><text x="485" y="287" text-anchor="middle" fill="#94a3b8" font-size="14">陈伟</text>
@@ -406,7 +473,6 @@
         <line x1="370" y1="172" x2="438" y2="172" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <line x1="370" y1="282" x2="438" y2="282" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <text x="372" y="45" fill="#64748b" font-size="11">HAS_CEO</text>
-        <!-- 大学 -->
         <rect x="600" y="42" width="150" height="40" rx="10" fill="#273449" stroke="#38bdf8"/><text x="675" y="67" text-anchor="middle" fill="#e2e8f0" font-size="13">未名理工大学</text>
         <rect x="600" y="152" width="150" height="40" rx="10" fill="#273449" stroke="#334155"/><text x="675" y="177" text-anchor="middle" fill="#94a3b8" font-size="13">明德大学</text>
         <rect x="600" y="262" width="150" height="40" rx="10" fill="#273449" stroke="#334155"/><text x="675" y="287" text-anchor="middle" fill="#94a3b8" font-size="13">北山大学</text>
@@ -414,7 +480,6 @@
         <line x1="530" y1="172" x2="598" y2="172" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <line x1="530" y1="282" x2="598" y2="282" stroke="#475569" stroke-width="2" marker-end="url(#g)"/>
         <text x="532" y="42" fill="#64748b" font-size="11">GRADUATED_FROM</text>
-        <!-- 城市 -->
         <rect x="800" y="42" width="80" height="40" rx="10" fill="#0b1220" stroke="#34d399"/><text x="840" y="67" text-anchor="middle" fill="#34d399" font-size="14">江城</text>
         <rect x="800" y="152" width="80" height="40" rx="10" fill="#0b1220" stroke="#334155"/><text x="840" y="177" text-anchor="middle" fill="#64748b" font-size="14">松岛</text>
         <rect x="800" y="262" width="80" height="40" rx="10" fill="#0b1220" stroke="#334155"/><text x="840" y="287" text-anchor="middle" fill="#64748b" font-size="14">云港</text>
@@ -427,9 +492,9 @@
     </div>
   </section>
 
-  <!-- 12 step3 遍历 Q1 -->
+  <!-- 14 step3 遍历 Q1 -->
   <section class="slide">
-    <h2><span class="num">7</span>如何做到 · 第三步：多跳遍历（Q1）</h2>
+    <h2><span class="num">7</span>GraphRAG 详细步骤 · 第三步：多跳遍历（Q1）</h2>
     <div class="grid cols-2">
       <div class="card">
         <h3>从「云枢智能」出发，沿边走</h3>
@@ -458,7 +523,7 @@
     </div>
   </section>
 
-  <!-- 13 Q2 聚合遍历 -->
+  <!-- 15 Q2 聚合遍历 -->
   <section class="slide">
     <h2><span class="num">7</span>对比 · Q2 聚合遍历（展开成树 + 过滤）</h2>
     <div class="grid cols-12-1">
@@ -504,7 +569,7 @@
     </div>
   </section>
 
-  <!-- 14 取舍 -->
+  <!-- 16 取舍 -->
   <section class="slide">
     <h2><span class="num">8</span>适用边界与取舍</h2>
     <p class="lead">GraphRAG 不是银弹，也有代价。</p>
@@ -520,7 +585,7 @@
     </div>
   </section>
 
-  <!-- 15 运行Demo -->
+  <!-- 17 运行Demo -->
   <section class="slide">
     <h2><span class="num">▶</span>动手跑 Demo</h2>
     <div class="grid cols-2">
@@ -548,7 +613,7 @@ python <span class="c-key">compare.py</span></div>
     </div>
   </section>
 
-  <!-- 16 收尾 -->
+  <!-- 18 收尾 -->
   <section class="slide center">
     <div class="kicker">TAKEAWAYS</div>
     <h1>一句话记住</h1>
@@ -567,7 +632,7 @@ python <span class="c-key">compare.py</span></div>
 
 </div>
 
-<div class="counter"><span id="cur">1</span> / <span id="total">16</span></div>
+<div class="counter"><span id="cur">1</span> / <span id="total">18</span></div>
 <div class="nav">
   <button id="prev" aria-label="上一页">‹</button>
   <button id="next" aria-label="下一页">›</button>

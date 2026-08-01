@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "fix-branch-cleanup",
+			"type": "shell",
+			"command": "mkdir -p /Users/harrisoncao/Workspace/RAGDemo.worktrees/graphrag-knowledge-sharing-demo && git -C /Users/harrisoncao/Workspace/RAGDemo worktree prune && git -C /Users/harrisoncao/Workspace/RAGDemo branch -d agents/graphrag-knowledge-sharing-demo && echo '--- branches ---' && git -C /Users/harrisoncao/Workspace/RAGDemo branch -a && echo '--- worktrees ---' && git -C /Users/harrisoncao/Workspace/RAGDemo worktree list"
+		}
+	]
+}
