@@ -584,7 +584,85 @@ Weiming Tech, which is located in Jiangcheng.</span></div>
     </div>
   </section>
 
-  <!-- 17 Run the Demo -->
+  <!-- 17 Architecture overview -->
+  <section class="slide">
+    <h2><span class="num">⬡</span>Demo Architecture Overview</h2>
+    <p class="muted" style="margin-bottom:4px">One shared <code>common/</code> layer + two parallel pipelines: <b class="hl">RAG does vector retrieval</b>, <b class="hl2">GraphRAG does graph traversal</b>, and both hand off to the same <code>ChatClient</code> to generate the answer.</p>
+    <div class="card" style="flex:1;padding:14px 18px">
+      <svg viewBox="0 0 1000 604">
+        <defs>
+          <marker id="ab" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#38bdf8"/></marker>
+          <marker id="ap" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#818cf8"/></marker>
+          <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#64748b"/></marker>
+          <marker id="ae" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#34d399"/></marker>
+        </defs>
+
+        <!-- ① Entry -->
+        <text x="16" y="34" fill="#64748b" font-size="13">① Entry · CLI</text>
+        <rect x="150" y="14" width="180" height="42" rx="10" fill="#273449" stroke="#38bdf8"/><text x="240" y="40" text-anchor="middle" fill="#e2e8f0" font-size="13">RAG/rag_qa.py</text>
+        <rect x="395" y="14" width="215" height="42" rx="10" fill="#273449" stroke="#818cf8"/><text x="502" y="40" text-anchor="middle" fill="#e2e8f0" font-size="13">GraphRAG/graphrag_qa.py</text>
+        <rect x="695" y="14" width="150" height="42" rx="10" fill="#273449" stroke="#f472b6"/><text x="770" y="40" text-anchor="middle" fill="#e2e8f0" font-size="13">compare.py</text>
+        <text x="862" y="30" fill="#64748b" font-size="11">interactive</text>
+        <text x="862" y="46" fill="#64748b" font-size="11">1·2 presets</text>
+
+        <!-- entry → common -->
+        <line x1="240" y1="56" x2="240" y2="78" stroke="#64748b" stroke-width="1.6" marker-end="url(#ag)"/>
+        <line x1="502" y1="56" x2="502" y2="78" stroke="#64748b" stroke-width="1.6" marker-end="url(#ag)"/>
+        <line x1="770" y1="56" x2="770" y2="78" stroke="#64748b" stroke-width="1.6" marker-end="url(#ag)"/>
+
+        <!-- ② common layer -->
+        <rect x="40" y="80" width="920" height="86" rx="14" fill="#1e293b" stroke="#f472b6" stroke-dasharray="5 4"/>
+        <text x="56" y="100" fill="#f472b6" font-size="13">② common/ shared layer (used by both pipelines)</text>
+        <rect x="56" y="110" width="166" height="46" rx="9" fill="#273449" stroke="#334155"/><text x="139" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">config.py</text><text x="139" y="146" text-anchor="middle" fill="#64748b" font-size="10">reads .env</text>
+        <rect x="232" y="110" width="166" height="46" rx="9" fill="#273449" stroke="#334155"/><text x="315" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">corpus.py</text><text x="315" y="146" text-anchor="middle" fill="#64748b" font-size="10">load · chunk</text>
+        <rect x="408" y="110" width="166" height="46" rx="9" fill="#273449" stroke="#334155"/><text x="491" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">embedding.py</text><text x="491" y="146" text-anchor="middle" fill="#64748b" font-size="10">Embedder</text>
+        <rect x="584" y="110" width="166" height="46" rx="9" fill="#273449" stroke="#334155"/><text x="667" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">chat.py</text><text x="667" y="146" text-anchor="middle" fill="#64748b" font-size="10">ChatClient</text>
+        <rect x="760" y="110" width="184" height="46" rx="9" fill="#273449" stroke="#334155"/><text x="852" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">questions.py</text><text x="852" y="146" text-anchor="middle" fill="#64748b" font-size="10">Q1/Q2 · loop</text>
+
+        <!-- common → pipelines -->
+        <line x1="240" y1="166" x2="235" y2="196" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ab)"/>
+        <line x1="760" y1="166" x2="765" y2="196" stroke="#818cf8" stroke-width="1.8" marker-end="url(#ap)"/>
+        <line x1="500" y1="176" x2="500" y2="470" stroke="#334155" stroke-width="1.4" stroke-dasharray="4 5"/>
+
+        <!-- ③ pipeline titles -->
+        <text x="235" y="188" text-anchor="middle" fill="#38bdf8" font-size="13">Traditional RAG · vector retrieval</text>
+        <text x="765" y="188" text-anchor="middle" fill="#818cf8" font-size="13">GraphRAG · graph traversal</text>
+
+        <!-- RAG steps -->
+        <rect x="110" y="198" width="250" height="40" rx="9" fill="#0b1220" stroke="#38bdf8"/><text x="235" y="223" text-anchor="middle" fill="#e2e8f0" font-size="12.5">① chunk corpus → 19 chunks</text>
+        <rect x="110" y="254" width="250" height="40" rx="9" fill="#0b1220" stroke="#38bdf8"/><text x="235" y="279" text-anchor="middle" fill="#e2e8f0" font-size="12.5">② Embedder → vectors</text>
+        <rect x="110" y="310" width="250" height="40" rx="9" fill="#0b1220" stroke="#38bdf8"/><text x="235" y="335" text-anchor="middle" fill="#e2e8f0" font-size="12.5">③ Faiss index (cached .cache)</text>
+        <rect x="110" y="366" width="250" height="40" rx="9" fill="#0b1220" stroke="#38bdf8"/><text x="235" y="391" text-anchor="middle" fill="#e2e8f0" font-size="12.5">④ similarity top-k search</text>
+        <rect x="110" y="422" width="250" height="40" rx="9" fill="#0b1220" stroke="#38bdf8"/><text x="235" y="447" text-anchor="middle" fill="#e2e8f0" font-size="12.5">⑤ stitch context → prompt</text>
+        <line x1="235" y1="238" x2="235" y2="252" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ab)"/>
+        <line x1="235" y1="294" x2="235" y2="308" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ab)"/>
+        <line x1="235" y1="350" x2="235" y2="364" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ab)"/>
+        <line x1="235" y1="406" x2="235" y2="420" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ab)"/>
+
+        <!-- GraphRAG steps -->
+        <rect x="640" y="198" width="250" height="40" rx="9" fill="#0b1220" stroke="#818cf8"/><text x="765" y="223" text-anchor="middle" fill="#e2e8f0" font-size="12.5">① LLM extract triples (13)</text>
+        <rect x="640" y="254" width="250" height="40" rx="9" fill="#0b1220" stroke="#818cf8"/><text x="765" y="279" text-anchor="middle" fill="#e2e8f0" font-size="12.5">② networkx graph (graph.json)</text>
+        <rect x="640" y="310" width="250" height="40" rx="9" fill="#0b1220" stroke="#818cf8"/><text x="765" y="335" text-anchor="middle" fill="#e2e8f0" font-size="12.5">③ locate start + multi-hop</text>
+        <rect x="640" y="366" width="250" height="40" rx="9" fill="#0b1220" stroke="#818cf8"/><text x="765" y="391" text-anchor="middle" fill="#e2e8f0" font-size="12.5">④ path triples → context</text>
+        <line x1="765" y1="238" x2="765" y2="252" stroke="#818cf8" stroke-width="1.8" marker-end="url(#ap)"/>
+        <line x1="765" y1="294" x2="765" y2="308" stroke="#818cf8" stroke-width="1.8" marker-end="url(#ap)"/>
+        <line x1="765" y1="350" x2="765" y2="364" stroke="#818cf8" stroke-width="1.8" marker-end="url(#ap)"/>
+
+        <!-- ④ generation -->
+        <rect x="330" y="486" width="340" height="48" rx="12" fill="#0b1220" stroke="#34d399"/><text x="500" y="510" text-anchor="middle" fill="#34d399" font-size="14">ChatClient → LLM generates answer</text><text x="500" y="527" text-anchor="middle" fill="#64748b" font-size="10.5">OpenAI-compatible · answers only from retrieved context/path</text>
+        <path d="M235,462 L235,486 L330,504" fill="none" stroke="#34d399" stroke-width="1.8" marker-end="url(#ae)"/>
+        <path d="M765,406 L765,486 L670,504" fill="none" stroke="#34d399" stroke-width="1.8" marker-end="url(#ae)"/>
+
+        <!-- ⑤ external deps -->
+        <text x="16" y="576" fill="#64748b" font-size="13">③ External deps</text>
+        <rect x="120" y="556" width="210" height="40" rx="9" fill="#1e293b" stroke="#34d399" stroke-dasharray="5 4"/><text x="225" y="573" text-anchor="middle" fill="#e2e8f0" font-size="11.5">Docs/cn｜en corpus</text><text x="225" y="589" text-anchor="middle" fill="#64748b" font-size="10">backs corpus.py</text>
+        <rect x="360" y="556" width="270" height="40" rx="9" fill="#1e293b" stroke="#34d399" stroke-dasharray="5 4"/><text x="495" y="573" text-anchor="middle" fill="#e2e8f0" font-size="11.5">local embedding model (offline)</text><text x="495" y="589" text-anchor="middle" fill="#64748b" font-size="10">backs embedding.py · sentence-transformers</text>
+        <rect x="660" y="556" width="260" height="40" rx="9" fill="#1e293b" stroke="#34d399" stroke-dasharray="5 4"/><text x="790" y="573" text-anchor="middle" fill="#e2e8f0" font-size="11.5">OpenAI-compatible Chat API</text><text x="790" y="589" text-anchor="middle" fill="#64748b" font-size="10">backs chat.py · e.g. DeepSeek</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 18 Run the Demo -->
   <section class="slide">
     <h2><span class="num">▶</span>Run the Demo</h2>
     <div class="grid cols-2">
@@ -612,7 +690,7 @@ python <span class="c-key">compare.py</span></div>
     </div>
   </section>
 
-  <!-- 18 Takeaways -->
+  <!-- 19 Takeaways -->
   <section class="slide center">
     <div class="kicker">TAKEAWAYS</div>
     <h1>Remember in One Line</h1>
@@ -631,7 +709,7 @@ python <span class="c-key">compare.py</span></div>
 
 </div>
 
-<div class="counter"><span id="cur">1</span> / <span id="total">18</span></div>
+<div class="counter"><span id="cur">1</span> / <span id="total">19</span></div>
 <div class="nav">
   <button id="prev" aria-label="Previous">‹</button>
   <button id="next" aria-label="Next">›</button>
