@@ -13,8 +13,8 @@
   投资方 --INVESTED_IN-->  公司
 
 用法：
-    python GraphRAG/graphrag_qa.py               # 运行内置 Q1/Q2
-    python GraphRAG/graphrag_qa.py "你的问题"     # 自定义问题
+    python GraphRAG/graphrag_qa.py               # 进入循环问答模式（可输入 1/2 选择预备问题）
+    python GraphRAG/graphrag_qa.py "你的问题"     # 直接回答单个自定义问题
     python GraphRAG/graphrag_qa.py --rebuild      # 忽略缓存重新抽取
 """
 from __future__ import annotations
@@ -31,7 +31,7 @@ import networkx as nx  # noqa: E402
 from common.chat import ChatClient  # noqa: E402
 from common.config import ConfigError, load_config  # noqa: E402
 from common.corpus import corpus_fingerprint, load_chunks  # noqa: E402
-from common.questions import get_questions  # noqa: E402
+from common.questions import get_questions, run_interactive  # noqa: E402
 
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 MAX_HOPS = 4
@@ -248,13 +248,12 @@ def main():
     g = build_graph(triples)
 
     qs = get_questions(cfg.corpus_lang)
+    # 自定义/自由问题时，起点回退用两题的所有起点实体
+    fb = [e for q in qs.values() for e in q.start_entities]
     if args:
-        # 自定义问题：起点回退用两题的所有起点实体
-        fb = [e for q in qs.values() for e in q.start_entities]
         answer(g, chat, " ".join(args), fb)
     else:
-        for q in qs.values():
-            answer(g, chat, q.text, q.start_entities)
+        run_interactive(cfg.corpus_lang, lambda q: answer(g, chat, q, fb))
 
 
 if __name__ == "__main__":

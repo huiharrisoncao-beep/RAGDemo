@@ -4,8 +4,8 @@
      → 查询 embedding → top-k 检索 → 拼接上下文 → chat 生成。
 
 用法：
-    python RAG/rag_qa.py            # 运行内置 Q1/Q2
-    python RAG/rag_qa.py "你的问题"  # 自定义问题
+    python RAG/rag_qa.py            # 进入循环问答模式（可输入 1/2 选择预备问题）
+    python RAG/rag_qa.py "你的问题"  # 直接回答单个自定义问题
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from common.chat import ChatClient  # noqa: E402
 from common.config import ConfigError, load_config  # noqa: E402
 from common.corpus import corpus_fingerprint, load_chunks  # noqa: E402
 from common.embedding import Embedder  # noqa: E402
-from common.questions import get_questions  # noqa: E402
+from common.questions import run_interactive  # noqa: E402
 
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 TOP_K = 3
@@ -146,9 +146,7 @@ def main():
     if args:
         answer(store, chat, " ".join(args))
     else:
-        qs = get_questions(cfg.corpus_lang)
-        for q in qs.values():
-            answer(store, chat, q.text)
+        run_interactive(cfg.corpus_lang, lambda q: answer(store, chat, q))
 
 
 if __name__ == "__main__":

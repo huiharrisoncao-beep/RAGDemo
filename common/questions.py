@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Callable, List
 
 
 @dataclass
@@ -57,3 +57,57 @@ QUESTIONS = {
 
 def get_questions(lang: str) -> "dict[str, Question]":
     return QUESTIONS[lang]
+
+
+_UI = {
+    "cn": {
+        "banner": "进入循环问答模式：直接输入问题，或用快捷键选择预备问题。",
+        "preset": "预备问题",
+        "quit_hint": "退出",
+        "prompt": "请输入问题（或输入 1/2 选择预备问题，q 退出）> ",
+        "picked": "已选择",
+        "bye": "已退出，再见。",
+    },
+    "en": {
+        "banner": "Interactive Q&A mode: type a question, or use a shortcut to pick a preset.",
+        "preset": "preset question",
+        "quit_hint": "quit",
+        "prompt": "Enter a question (or 1/2 to pick a preset, q to quit) > ",
+        "picked": "Picked",
+        "bye": "Bye.",
+    },
+}
+
+
+def run_interactive(lang: str, ask: Callable[[str], None]) -> None:
+    """循环问答：用户输入问题即作答；输入 1/2 选择预备问题；输入 q 退出。
+
+    ask: 接受问题文本并完成一次问答的回调。
+    """
+    ui = _UI.get(lang, _UI["cn"])
+    presets = list(get_questions(lang).values())
+
+    print("\n" + "=" * 70)
+    print(ui["banner"])
+    for i, q in enumerate(presets, 1):
+        print(f"  [{i}] {ui['preset']} {q.qid}: {q.text}")
+    print(f"  [q] {ui['quit_hint']}")
+    print("=" * 70)
+
+    while True:
+        try:
+            raw = input("\n" + ui["prompt"]).strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n" + ui["bye"])
+            break
+        if not raw:
+            continue
+        if raw.lower() in ("q", "quit", "exit"):
+            print(ui["bye"])
+            break
+        if raw.isdigit() and 1 <= int(raw) <= len(presets):
+            question = presets[int(raw) - 1].text
+            print(f"{ui['picked']}: {question}")
+        else:
+            question = raw
+        ask(question)
