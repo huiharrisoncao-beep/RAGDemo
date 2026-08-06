@@ -11,7 +11,8 @@ Docs/            双语语料库（事实链被刻意拆散到不同文档）
   cn/            中文语料
   en/            英文平行语料
 RAG/             传统 RAG：切块 → embedding → Faiss → top-k → 生成
-GraphRAG/        手写 GraphRAG：LLM抽取三元组 → 建图 → 多跳遍历 → 生成
+GraphRAG/      手写 GraphRAG：LLM抽取三元组 → 建图 → 多跳遍历 → 生成（三步透明）
+MicrosoftGraphRAG/ 微软官方 GraphRAG 框架：官方索引管线 → local/global search
 common/          共享层：配置、chat 客户端、embedding、语料加载、基准问题
 compare.py       并排对比入口
 SHARING.md       知识分享讲解材料
@@ -53,13 +54,32 @@ cp .env.example .env
 python RAG/rag_qa.py
 python RAG/rag_qa.py "云枢智能的CEO毕业于哪所大学？"
 
-# GraphRAG（首次会用 LLM 抽取三元组并缓存；--rebuild 可强制重抽）
+# 手写轻量 GraphRAG（首次会用 LLM 抽取三元组并缓存；--rebuild 可强制重抽）
 python GraphRAG/graphrag_qa.py
 python GraphRAG/graphrag_qa.py --rebuild
+
+# 微软官方 GraphRAG 框架（首次会跑官方索引管线并缓存；--rebuild 重索引，--summary 打印产物摘要）
+python MSGraphRAG/msgraphrag_qa.py
+python MSGraphRAG/msgraphrag_qa.py --rebuild --summary
 
 # 并排对比
 python compare.py
 ```
+
+### MicrosoftGraphRAG 前置条件
+
+官方框架的向量化走本机 **Ollama** 的 OpenAI 兼容端点，chat 仍复用 `.env` 里的 DeepSeek 配置：
+
+```bash
+ollama pull embeddinggemma        # 或用 OLLAMA_BASE_URL / GRAPHRAG_EMBED_MODEL 指定其他端点/模型
+```
+
+| 变量 | 默认 | 说明 |
+|---|---|---|
+| `OLLAMA_BASE_URL` | `http://localhost:11434/v1` | OpenAI 兼容的 embedding 端点 |
+| `GRAPHRAG_EMBED_MODEL` | `embeddinggemma` | 本机 Ollama 上的 embedding 模型 |
+
+与手写版的差异：官方管线是黑盒（社区检测 + local/global search），**不逐跳打印遍历过程**——Q1（线性多跳）走 local search，Q2（聚合多跳）走 global search。
 
 切换语言：
 

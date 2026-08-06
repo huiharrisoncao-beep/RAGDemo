@@ -4,3 +4,5 @@ openai>=1.30.0
 networkx>=3.1
 sentence-transformers>=2.2.2
 python-dotenv>=1.0.0
+# 微软官方 GraphRAG 框架（MicrosoftGraphRAG/ 使用；较重，含 litellm 等）
+graphrag==3.1.1
